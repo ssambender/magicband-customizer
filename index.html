@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MagicBand Customizer</title>
+    <link rel="icon" href="favicon.png">
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #1a1a1a; font-family: sans-serif; }
+        
+        #ui-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 220px;
+        }
+
+        #right-ui-container {
+            /* position: absolute;
+            top: 20px;
+            right: 20px; */
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #toggle-presets-btn {
+            background-color: #24495c;
+            color: white;
+            font-size: 0.9em;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: background-color 0.2s;
+        }
+
+        #toggle-presets-btn:hover {
+            background-color: #346a85;
+        }
+
+        #presets-dropdown {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            width: 100%;
+            max-height: 70vh;
+            box-sizing: border-box;
+            overflow-y: auto;
+            flex-direction: column;
+        }
+
+        #presets-dropdown.active {
+            display: flex;
+        }
+
+        .section-label {
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .template-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #eee;
+            padding: 5px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+
+        .preview-thumb {
+            width: 45px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background: white;
+        }
+
+        .download-link {
+            flex-grow: 1;
+            text-decoration: none;
+        }
+
+        .template-btn {
+            width: 100%;
+            padding: 6px 4px;
+            font-size: 0.7em;
+            cursor: pointer;
+            background-color: #24495c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .template-btn:hover { background-color: #346a85; }
+
+        .control-group { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 0.8em; font-weight: bold; color: #333; }
+        input[type="color"] { width: 100%; height: 30px; cursor: pointer; border: none; border-radius: 4px; }
+        button { cursor: pointer; padding: 8px; border-radius: 4px; border: 1px solid #ccc; background: white; transition: 0.2s; }
+        button:hover { background: #f0f0f0; }
+
+        hr { border: 0; border-top: 1px solid #ccc; margin: 5px 0; }
+
+        .presets-grid {
+            display: grid;
+            gap: 10px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .preset-card {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            background: #f9f9f9;
+        }
+
+        .preset-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .preset-color-preview {
+            width: 100%;
+            height: 35px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            border: 1px solid #ccc;
+        }
+        
+        .preset-card span { font-size: 0.75em; font-weight: bold; color: #333; display: block; line-height: 1.2; }
+    </style>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div id="ui-container">
+        <div class="section-label">Templates</div>
+        
+        <div class="template-row">
+            <img src="template-preview.png" alt="Simple Preview" class="preview-thumb">
+            <a href="template.png" download="template.png" class="download-link">
+                <button class="template-btn">Download Template (Simple)</button>
+            </a>
+        </div>
+
+        <div class="template-row">
+            <img src="template-full-preview.png" alt="Full Preview" class="preview-thumb">
+            <a href="template-full.png" download="template-full.png" class="download-link">
+                <button class="template-btn">Download Template (Full)</button>
+            </a>
+        </div>
+
+        <hr>
+        <div class="section-label">Customization</div>
+
+        <div class="control-group">
+            <label for="texture-upload">Upload Custom Wrap:</label>
+            <input type="file" id="texture-upload" accept="image/png, image/jpeg, image/webp">
+        </div>
+        
+        <div class="control-group">
+            <label for="base-color">Base Band Color:</label>
+            <input type="color" id="base-color" value="#24495c">
+        </div>
+
+        <hr>
+        <div class="section-label">3D View Controls</div>
+
+        <div class="control-group">
+            <button id="toggle-view">Switch to Flat Model</button>
+        </div>
+
+        <div class="control-group">
+            <button id="toggle-animation">Pause Rotation</button>
+        </div>
+
+        <hr>
+        <div id="right-ui-container">
+            <button id="toggle-presets-btn">View Premade Designs ▼</button>
+            
+            <div id="presets-dropdown">
+                <div class="section-label">Select a Design</div>
+                <div id="presets-grid" class="presets-grid">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        // 3d scene init
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x111111);
+        
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 1.25, 1.25);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.colorSpace = THREE.SRGBColorSpace;
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        // 3d lighting
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
+        scene.add(hemiLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
+        dirLight.position.set(5, 10, 7.5);
+        dirLight.castShadow = true;
+        dirLight.shadow.bias = -0.001; 
+        dirLight.shadow.mapSize.set(2048, 2048);
+        scene.add(dirLight);
+
+        // 3d grid and floor
+        const grid = new THREE.GridHelper(10, 10, 0x888888, 0x444444);
+        grid.position.y = -1.05;
+        scene.add(grid);
+
+        const floorGeo = new THREE.PlaneGeometry(20, 20);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = -1.1;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        // 3d model rendering
+        let bands = []; 
+        let curvedModel, flatModel;
+        const loader = new GLTFLoader();
+
+        function loadModel(url, isFlat) {
+            loader.load(url, (gltf) => {
+                const model = gltf.scene;
+                
+                model.traverse((child) => {
+                    if (child.isMesh) {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        child.material = child.material.clone();
+                        child.material.shadowSide = THREE.FrontSide;
+                    }
+                });
+
+                const box = new THREE.Box3().setFromObject(model);
+                const center = box.getCenter(new THREE.Vector3());
+                model.position.sub(center);
+                model.rotation.y = 3.6;
+                
+                if (isFlat) {
+                    model.position.y = -0.5; 
+                    model.position.x = 0;
+                    flatModel = model;
+                    flatModel.visible = false;
+                } else {
+                    model.position.y = 0;
+                    curvedModel = model;
+                    curvedModel.visible = true;
+                }
+
+                scene.add(model);
+                bands.push(model);
+            });
+        }
+
+        loadModel('magicband.glb', false);
+        loadModel('flat-magicband.glb', true);
+
+        // ui panel
+        const fileInput = document.getElementById('texture-upload');
+        const colorInput = document.getElementById('base-color');
+        const toggleBtn = document.getElementById('toggle-view');
+        const textureLoader = new THREE.TextureLoader();
+
+        let isPaused = false;
+        const animBtn = document.getElementById('toggle-animation');
+
+        animBtn.addEventListener('click', () => {
+            isPaused = !isPaused;
+            animBtn.textContent = isPaused ? "Resume Rotation" : "Pause Rotation";
+        });
+
+        toggleBtn.addEventListener('click', () => {
+            if (!curvedModel || !flatModel) return;
+            const isCurvedShowing = curvedModel.visible;
+            if (isCurvedShowing) {
+                flatModel.rotation.y = curvedModel.rotation.y;
+                curvedModel.visible = false;
+                flatModel.visible = true;
+                toggleBtn.textContent = "Switch to Standard Model";
+            } else {
+                curvedModel.rotation.y = flatModel.rotation.y;
+                flatModel.visible = false;
+                curvedModel.visible = true;
+                toggleBtn.textContent = "Switch to Flat Model";
+            }
+        });
+
+        // refactor color and texture to materials
+        function applyColor(hexColor) {
+            bands.forEach(model => {
+                model.traverse((child) => {
+                    if (child.isMesh && child.name === "Cube007") {
+                        child.material.color.set(hexColor);
+                        child.material.needsUpdate = true;
+                    }
+                });
+            });
+        }
+
+        function applyTextureMap(newTexture) {
+            newTexture.flipY = false; 
+            newTexture.colorSpace = THREE.SRGBColorSpace;
+            bands.forEach(model => {
+                model.traverse((child) => {
+                    if (child.isMesh && (child.name === "Cube007_1" || child.name === "Cube007_2")) {
+                        child.material.map = newTexture;
+                        child.material.color.set(0xffffff);
+                        child.material.needsUpdate = true;
+                    }
+                });
+            });
+        }
+
+        colorInput.addEventListener('input', (event) => {
+            applyColor(event.target.value);
+        });
+
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                textureLoader.load(e.target.result, applyTextureMap);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // PREMADE DESIGNS AND COLORS
+        const premadeDesigns = [
+            { name: "Polynesian", color: "#298585", texture: "sam-design-poly.png" },
+            { name: "Princess Watercolor", color: "#fffff6", texture: "sam-design-princess-watercolor.png" },
+            { name: "Tomorrowland", color: "#24495c", texture: "sam-design-tomorrowland.png" },
+            { name: "Topology", color: "#000000", texture: "sam-design-topo.png" }
+        ];
+
+        const dropdown = document.getElementById('presets-dropdown');
+        const togglePresetsBtn = document.getElementById('toggle-presets-btn');
+        const presetsContainer = document.getElementById('presets-grid');
+
+        // toggle dropdown
+        togglePresetsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('active');
+        });
+
+        // close dropdown when clicking outside of it
+        window.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target) && e.target !== togglePresetsBtn) {
+                dropdown.classList.remove('active');
+            }
+        });
+
+        // load the preset cards
+        premadeDesigns.forEach(preset => {
+            const card = document.createElement('div');
+            card.className = 'preset-card';
+            card.innerHTML = `
+                <div class="preset-color-preview" style="background-color: ${preset.color};"></div>
+                <span>${preset.name}</span>
+            `;
+            
+            card.addEventListener('click', () => {
+                // update ui picker color
+                colorInput.value = preset.color;
+                
+                // apply the color
+                applyColor(preset.color);
+                
+                // load and apply the texture
+                textureLoader.load(preset.texture, (tex) => {
+                    applyTextureMap(tex);
+                });
+
+                //close dropdown
+                dropdown.classList.remove('active');
+            });
+            
+            presetsContainer.appendChild(card);
+        });
+
+        // animation
+        function animate() {
+            requestAnimationFrame(animate);
+            if (!isPaused) {
+                bands.forEach(model => {
+                    if(model.visible) model.rotation.y += 0.005;
+                });
+            }
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
