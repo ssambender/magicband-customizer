@@ -19,14 +19,11 @@
             z-index: 10;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
             width: 220px;
         }
 
         #right-ui-container {
-            /* position: absolute;
-            top: 20px;
-            right: 20px; */
             z-index: 10;
             display: flex;
             flex-direction: column;
@@ -98,6 +95,14 @@
         .download-link {
             flex-grow: 1;
             text-decoration: none;
+            color: black;
+            opacity: 0.6;
+            text-decoration: underline;
+            font-size: 0.75rem;
+        }
+        .download-link:hover {
+            opacity: 1;
+            cursor: pointer;
         }
 
         .template-btn {
@@ -166,28 +171,14 @@
 </head>
 <body>
 
-    <div id="ui-container">
-        <div class="section-label">Templates</div>
-        
-        <div class="template-row">
-            <img src="template-preview.png" alt="Simple Preview" class="preview-thumb">
-            <a href="template.png" download="template.png" class="download-link">
-                <button class="template-btn">Download Template (Simple)</button>
-            </a>
-        </div>
-
-        <div class="template-row">
-            <img src="template-full-preview.png" alt="Full Preview" class="preview-thumb">
-            <a href="template-full.png" download="template-full.png" class="download-link">
-                <button class="template-btn">Download Template (Full)</button>
-            </a>
-        </div>
-
-        <hr>
+    <div id="ui-container">        
         <div class="section-label">Customization</div>
 
         <div class="control-group">
             <label for="texture-upload">Upload Custom Wrap:</label>
+            <a href="template.png" download="template.png" class="download-link">
+                Download Template
+            </a>
             <input type="file" id="texture-upload" accept="image/png, image/jpeg, image/webp">
         </div>
         
@@ -370,12 +361,30 @@
             applyColor(event.target.value);
         });
 
+        // MERGE UPLOADED IMAGE WITH TEMPLATE-FULL OVERLAY
         fileInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (!file) return;
+            
             const reader = new FileReader();
             reader.onload = (e) => {
-                textureLoader.load(e.target.result, applyTextureMap);
+                const uploadedImg = new Image();
+                uploadedImg.onload = () => {
+                    const templateImg = new Image();
+                    templateImg.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = templateImg.width;
+                        canvas.height = templateImg.height;
+                        const ctx = canvas.getContext('2d');
+                        
+                        ctx.drawImage(uploadedImg, 0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(templateImg, 0, 0, canvas.width, canvas.height);
+                        const mergedDataUrl = canvas.toDataURL('image/png');
+                        textureLoader.load(mergedDataUrl, applyTextureMap);
+                    };
+                    templateImg.src = 'template-full.png';
+                };
+                uploadedImg.src = e.target.result;
             };
             reader.readAsDataURL(file);
         });
