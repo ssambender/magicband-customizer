@@ -1,7 +1,7 @@
 <br>
 
 <p align="center">
- <img src="https://github.com/ssambender/magicband-customizer/blob/main/favicon.png?raw=true" alt="MagicBand+ Logo" height="165">
+ <img src="favicon.png" alt="MagicBand+ Logo" height="165">
 </p>
 
 <h3 align="center">MagicBand+ | Customizer and 3D Viewer</h3>
@@ -24,6 +24,11 @@ ___
 
 ---
 
+<p align="center">
+ <img src="magicband-screenshot-2.webp" alt="editor screenshot" height="420">
+</p>
+
+---
 
 ### Planned features:
 - [ ] Edit image directly in web
